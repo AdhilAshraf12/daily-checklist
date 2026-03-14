@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Checklist</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f11;
+      --surface: #18181c;
+      --surface2: #222228;
+      --border: #2e2e38;
+      --text: #f0f0f4;
+      --text-muted: #7a7a8e;
+      --text-dim: #4a4a5e;
+      --accent1: #c8f060;   /* lime */
+      --accent2: #f06090;   /* pink */
+      --accent3: #60c8f0;   /* sky */
+      --accent4: #f0b860;   /* amber */
+      --accent5: #a060f0;   /* violet */
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 0 0 80px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 36px 28px 20px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .header-left h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .header-left h1 span {
+      color: var(--accent1);
+    }
+
+    .date-badge {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-top: 6px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .progress-summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 8px 16px;
+    }
+
+    .progress-summary .frac {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent1);
+    }
+
+    .progress-summary .label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── PROGRESS BAR ── */
+    .global-bar-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 28px 28px;
+    }
+
+    .global-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .global-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent1), var(--accent3));
+      border-radius: 99px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── ADD TOPIC BAR ── */
+    .add-topic-bar {
+      display: flex;
+      gap: 10px;
+    }
+
+    .add-topic-bar input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-topic-bar input::placeholder { color: var(--text-dim); }
+    .add-topic-bar input:focus { border-color: var(--accent1); }
+
+    .color-pick {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .color-dot {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+
+    .color-dot:hover, .color-dot.selected { transform: scale(1.2); border-color: #fff4; }
+
+    .btn-add-topic {
+      background: var(--accent1);
+      color: #0f0f11;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 18px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-add-topic:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── TOPIC CARD ── */
+    .topic-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.25s;
+    }
+
+    .topic-card:hover { border-color: #3e3e50; }
+
+    .topic-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .topic-color-bar {
+      width: 4px;
+      height: 30px;
+      border-radius: 99px;
+      flex-shrink: 0;
+    }
+
+    .topic-title-wrap { flex: 1; min-width: 0; }
+
+    .topic-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topic-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .topic-pill {
+      font-size: 0.7rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 99px;
+      opacity: 0.9;
+    }
+
+    .topic-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 6px;
+      font-size: 1rem;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .btn-icon:hover { color: var(--text); background: var(--surface2); }
+
+    .chevron {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      transition: transform 0.25s;
+    }
+
+    .topic-card.open .chevron { transform: rotate(180deg); }
+
+    /* ── MINI PROGRESS ── */
+    .mini-bar {
+      height: 3px;
+      background: var(--border);
+      margin: 0 18px;
+    }
+
+    .mini-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.4s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── ITEMS LIST ── */
+    .items-section {
+      padding: 12px 18px 6px;
+      display: none;
+    }
+
+    .topic-card.open .items-section { display: block; }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      group: true;
+    }
+
+    .item-row:last-child { border-bottom: none; }
+
+    .item-cb {
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      border: 2px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
+      position: relative;
+    }
+
+    .item-cb.checked {
+      border-color: transparent;
+    }
+
+    .item-cb.checked::after {
+      content: '✓';
+      font-size: 11px;
+      font-weight: 700;
+      color: #0f0f11;
+    }
+
+    .item-label {
+      flex: 1;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      transition: opacity 0.2s, text-decoration 0.2s;
+      word-break: break-word;
+    }
+
+    .item-label.done {
+      opacity: 0.38;
+      text-decoration: line-through;
+    }
+
+    .btn-del-item {
+      background: none;
+      border: none;
+      color: transparent;
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 2px 5px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .item-row:hover .btn-del-item { color: var(--text-dim); }
+    .btn-del-item:hover { color: var(--accent2) !important; background: #f0609015; }
+
+    /* ── ADD ITEM ROW ── */
+    .add-item-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 0 14px;
+    }
+
+    .add-item-row input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      padding: 7px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-item-row input::placeholder { color: var(--text-dim); }
+    .add-item-row input:focus { border-color: var(--accent1); }
+
+    .btn-add-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 7px 13px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .btn-add-item:hover { background: var(--accent1); color: #0f0f11; border-color: var(--accent1); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-dim);
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.88rem; line-height: 1.6; }
+
+    /* ── RESET DAY BTN ── */
+    .toolbar {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 28px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: -4px;
+    }
+
+    .btn-ghost {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .topic-card { animation: slideIn 0.3s ease both; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .item-row { animation: fadeIn 0.2s ease both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 520px) {
+      header, main, .global-bar-wrap, .toolbar { padding-left: 16px; padding-right: 16px; }
+      .add-topic-bar { flex-wrap: wrap; }
+      .color-pick { order: -1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Daily <span>Checklist</span></h1>
+    <div class="date-badge" id="dateBadge"></div>
+  </div>
+  <div class="progress-summary">
+    <span class="frac" id="globalFrac">0/0</span>
+    <span class="label">done</span>
+  </div>
+</header>
+
+<div class="global-bar-wrap">
+  <div class="global-bar"><div class="global-bar-fill" id="globalBarFill" style="width:0%"></div></div>
+</div>
+
+<main id="topicsContainer">
+  <!-- topics rendered here -->
+  <div class="empty-state" id="emptyState">
+    <div class="icon">📋</div>
+    <p>No topics yet.<br>Add one below to get started.</p>
+  </div>
+</main>
+
+<div class="toolbar" style="margin-top:14px;">
+  <button class="btn-ghost" onclick="resetChecks()">↺ Reset all checks</button>
+  <button class="btn-ghost" onclick="clearDone()">✕ Clear completed items</button>
+</div>
+
+<!-- ADD TOPIC BAR -->
+<div style="max-width:780px;margin:18px auto 0;padding:0 28px;">
+  <div class="add-topic-bar">
+    <div class="color-pick" id="colorPick"></div>
+    <input id="topicInput" type="text" placeholder="New topic  (e.g. Workout, Groceries, Study…)" maxlength="40"
+      onkeydown="if(event.key==='Enter') addTopic()"/>
+    <button class="btn-add-topic" onclick="addTopic()">+ Add Topic</button>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ──
+const ACCENT_COLORS = ['#c8f060','#f06090','#60c8f0','#f0b860','#a060f0','#60f0b8'];
+let selectedColor = ACCENT_COLORS[0];
+
+// ── STATE ──
+let state = loadState();
+
+// ── INIT ──
+document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+buildColorPicker();
+render();
+
+// ── COLOR PICKER ──
+function buildColorPicker() {
+  const wrap = document.getElementById('colorPick');
+  wrap.innerHTML = '';
+  ACCENT_COLORS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'color-dot' + (c === selectedColor ? ' selected' : '');
+    d.style.background = c;
+    d.title = c;
+    d.onclick = () => { selectedColor = c; buildColorPicker(); };
+    wrap.appendChild(d);
+  });
+}
+
+// ── STATE MANAGEMENT ──
+function loadState() {
+  try {
+    const raw = localStorage.getItem('dailyChecklist_v2');
+    if (raw) return JSON.parse(raw);
+  } catch(_) {}
+  // Default seed data
+  return {
+    topics: [
+      {
+        id: uid(), title: 'Study', color: '#60c8f0', open: true,
+        items: [
+          { id: uid(), text: 'Chapter 3 — Calculus', done: false },
+          { id: uid(), text: 'Chapter 4 — Linear Algebra', done: false },
+          { id: uid(), text: 'Review lecture notes', done: false },
+        ]
+      },
+      {
+        id: uid(), title: 'Workout', color: '#c8f060', open: false,
+        items: [
+          { id: uid(), text: '3×10 Squats', done: false },
+          { id: uid(), text: '3×12 Pull-ups', done: false },
+          { id: uid(), text: '20 min cardio', done: false },
+        ]
+      },
+      {
+        id: uid(), title: 'Groceries', color: '#f0b860', open: false,
+        items: [
+          { id: uid(), text: 'Eggs', done: false },
+          { id: uid(), text: 'Oat milk', done: false },
+          { id: uid(), text: 'Chicken breast', done: false },
+          { id: uid(), text: 'Spinach', done: false },
+        ]
+      }
+    ]
+  };
+}
+
+function saveState() {
+  localStorage.setItem('dailyChecklist_v2', JSON.stringify(state));
+}
+
+function uid() {
+  return Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+}
+
+// ── RENDER ──
+function render() {
+  const container = document.getElementById('topicsContainer');
+  const empty = document.getElementById('emptyState');
+
+  // Remove existing cards (keep emptyState)
+  container.querySelectorAll('.topic-card').forEach(el => el.remove());
+
+  if (state.topics.length === 0) {
+    empty.style.display = '';
+    updateGlobal();
+    return;
+  }
+  empty.style.display = 'none';
+
+  state.topics.forEach((topic, ti) => {
+    const card = document.createElement('div');
+    card.className = 'topic-card' + (topic.open ? ' open' : '');
+    card.id = 'topic-' + topic.id;
+
+    const total = topic.items.length;
+    const done  = topic.items.filter(i => i.done).length;
+    const pct   = total ? Math.round(done/total*100) : 0;
+
+    card.innerHTML = `
+      <div class="topic-header" onclick="toggleTopic('${topic.id}')">
+        <div class="topic-color-bar" style="background:${topic.color}"></div>
+        <div class="topic-title-wrap">
+          <div class="topic-title">${escHtml(topic.title)}</div>
+          <div class="topic-meta">${done}/${total} completed · ${pct}%</div>
+        </div>
+        <div class="topic-pill" style="background:${topic.color}22;color:${topic.color}">${pct}%</div>
+        <div class="topic-actions">
+          <button class="btn-icon" title="Delete topic" onclick="event.stopPropagation();deleteTopic('${topic.id}')">🗑</button>
+        </div>
+        <div class="chevron">▾</div>
+      </div>
+      <div class="mini-bar">
+        <div class="mini-bar-fill" style="width:${pct}%;background:${topic.color}"></div>
+      </div>
+      <div class="items-section" id="items-${topic.id}">
+        ${topic.items.map(item => renderItem(topic.id, item)).join('')}
+        <div class="add-item-row">
+          <input id="newitem-${topic.id}" type="text" placeholder="Add an item…" maxlength="120"
+            onkeydown="if(event.key==='Enter') addItem('${topic.id}')"/>
+          <button class="btn-add-item" onclick="addItem('${topic.id}')">+</button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  updateGlobal();
+}
+
+function renderItem(topicId, item) {
+  return `
+    <div class="item-row" id="item-${item.id}">
+      <div class="item-cb ${item.done ? 'checked' : ''}"
+           style="${item.done ? 'background:'+getTopicColor(topicId) : ''}"
+           onclick="toggleItem('${topicId}','${item.id}')"></div>
+      <span class="item-label ${item.done ? 'done' : ''}">${escHtml(item.text)}</span>
+      <button class="btn-del-item" onclick="deleteItem('${topicId}','${item.id}')">✕</button>
+    </div>`;
+}
+
+function getTopicColor(topicId) {
+  const t = state.topics.find(t => t.id === topicId);
+  return t ? t.color : '#c8f060';
+}
+
+function updateGlobal() {
+  const all  = state.topics.flatMap(t => t.items);
+  const done = all.filter(i => i.done).length;
+  const total = all.length;
+  document.getElementById('globalFrac').textContent = `${done}/${total}`;
+  const pct = total ? done/total*100 : 0;
+  document.getElementById('globalBarFill').style.width = pct + '%';
+}
+
+// ── ACTIONS ──
+function addTopic() {
+  const input = document.getElementById('topicInput');
+  const title = input.value.trim();
+  if (!title) { input.focus(); return; }
+  state.topics.push({ id: uid(), title, color: selectedColor, open: true, items: [] });
+  input.value = '';
+  saveState(); render();
+}
+
+function deleteTopic(id) {
+  if (!confirm('Delete this topic and all its items?')) return;
+  state.topics = state.topics.filter(t => t.id !== id);
+  saveState(); render();
+}
+
+function toggleTopic(id) {
+  const t = state.topics.find(t => t.id === id);
+  if (t) { t.open = !t.open; saveState(); render(); }
+}
+
+function addItem(topicId) {
+  const input = document.getElementById('newitem-' + topicId);
+  const text = input.value.trim();
+  if (!text) { input.focus(); return; }
+  const t = state.topics.find(t => t.id === topicId);
+  if (t) { t.items.push({ id: uid(), text, done: false }); saveState(); render(); }
+}
+
+function toggleItem(topicId, itemId) {
+  const t = state.topics.find(t => t.id === topicId);
+  if (t) {
+    const item = t.items.find(i => i.id === itemId);
+    if (item) { item.done = !item.done; saveState(); render(); }
+  }
+}
+
+function deleteItem(topicId, itemId) {
+  const t = state.topics.find(t => t.id === topicId);
+  if (t) { t.items = t.items.filter(i => i.id !== itemId); saveState(); render(); }
+}
+
+function resetChecks() {
+  state.topics.forEach(t => t.items.forEach(i => i.done = false));
+  saveState(); render();
+}
+
+function clearDone() {
+  state.topics.forEach(t => t.items = t.items.filter(i => !i.done));
+  saveState(); render();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
